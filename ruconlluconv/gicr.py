@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -11,7 +12,7 @@ def udpos_from_multexteastru(features):
     pos = {
         'A': 'ADJ',
         'C': 'CONJ',  # CCONJ or SCONJ
-        'H': 'H',
+        'H': 'H', # TODO
         'I': 'INTJ',
         'M': 'NUM',
         'N': 'NOUN',
@@ -30,6 +31,28 @@ def udpos_from_multexteastru(features):
         pos = {
             'c': 'NOUN',
             'p': 'PROPN',
+        }[features[1]]
+
+    # if 'P' == features[0]:  # TODO
+    #     pos = {
+    #         'n': 'PRON',
+    #         'a': 'ADJ',
+    #         'r': 'ADV',
+    #     }[features[6]]
+
+    if 'X' == features[0] and len(features) == 2:
+        pos = {
+            'u': 'X',
+            'd': 'NUM',
+            'c': 'NUM',
+            'p': 'X',
+            'f': 'X',
+            'z': 'X',  # TODO
+            'r': 'X',  # saw only *
+            's': 'X',
+            'g': 'X',
+            't': 'X',
+            '-': 'X',
         }[features[1]]
 
     return pos
@@ -72,13 +95,20 @@ def udfeats_from_multexteastru(f):
                 '?': '',
             }[f[3]]),
         ])
-        # N5 — Дополнительный падеж
+
+        if f[5] not in {'-', '?'}:
+            feat['Case'] = {
+                'l': 'Loc',
+                'p': 'Par',
+            }[f[5]]
     elif 'V' == f[0]:
         feat = collections.OrderedDict([
             ('Aspect', {
-                'p': 'Imp',
-                'i': 'Perf',
+                'i': 'Imp',
+                'p': 'Perf',
+                'P': 'Perf',  # ?
                 '-': '',
+                '*': '',
                 '?': '',
             }[f[9]]),
 
@@ -136,6 +166,13 @@ def udfeats_from_multexteastru(f):
                 '?': '',
             }[f[6]]),
 
+            ('Variant', {
+                'f': '',
+                's': 'Short',
+                '-': '',
+                '?': '',
+            }[f[11]]),
+
             ('VerbForm', {
                 'i': 'Fin',
                 'm': 'Fin',
@@ -145,13 +182,6 @@ def udfeats_from_multexteastru(f):
                 'x': '',
                 '?': '',
             }[f[1]]),
-
-            ('Variant', {
-                'f': '',
-                's': 'Short',
-                '-': '',
-                '?': '',
-            }[f[11]]),
 
             ('Voice', {
                 'a': 'Act',
@@ -206,7 +236,6 @@ def udfeats_from_multexteastru(f):
                 '-': '',
                 '?': '',
             }[f[5]]),
-
         ])
     elif 'P' == f[0]:
         feat = collections.OrderedDict([
@@ -291,13 +320,22 @@ def udfeats_from_multexteastru(f):
                 '?': '',
             }[f[2]]),
 
-            ('NumForm', {
-                'l': '',
-                'd': 'Digit',
-                'r': 'Digit',
+            ('Number', {
+                's': 'Sing',
+                'p': 'Plur',
                 '-': '',
+                '*': '',
                 '?': '',
-            }[f[5]]),
+            }[f[3]]),
+
+            # TODO
+            # ('NumForm', {
+            #     'l': '',
+            #     'd': 'Digit',
+            #     'r': 'Digit',
+            #     '-': '',
+            #     '?': '',
+            # }[f[5]]),
 
             ('NumType', {
                 'c': 'Card',
@@ -307,14 +345,6 @@ def udfeats_from_multexteastru(f):
                 '-': '',
                 '?': '',
             }[f[1]]),
-
-            ('Number', {
-                's': 'Sing',
-                'p': 'Plur',
-                '-': '',
-                '*': '',
-                '?': '',
-            }[f[3]]),
         ])
     elif 'R' == f[0]:
         feat = collections.OrderedDict([
@@ -344,12 +374,58 @@ def join_gicr_composite(parts):
     return result
 
 
+def join_gicr_splits(source_corpora):
+    processed_corpora = []
+
+    for sentence in source_corpora.split('\n\n'):
+        if '\tXf' not in sentence or '\n' not in sentence:
+            processed_corpora.append(sentence)
+            continue
+
+        sentence = sentence.split('\n')
+
+        for wi, word0 in enumerate(sentence):
+            if '\tXf' not in word0:
+                continue
+
+            word0 = [w.strip() for w in word0.split('\t')]
+
+            assert wi > 0
+            word1 = [w.strip() for w in sentence[wi - 1].split('\t')]
+
+            if 'P' != word1[1]:
+                if word0[2].isalnum():
+                    continue
+
+                word1[3] = u'[{}{}]'.format(word1[3][1:-1], word0[3][1:-1])
+                word1[2] = word1[2] + word0[2]
+                sentence[wi - 1] = '\t'.join(word1)
+                sentence[wi] = ''
+                continue
+
+            assert wi > 1
+            word2 = [w.strip() for w in sentence[wi - 2].split('\t')]
+
+            word2[3] = u'[{}{}{}]'.format(word2[3][1:-1], word1[2], word0[3][1:-1])
+            word2[2] = word2[2] + word1[2] + word0[2]
+            sentence[wi - 2] = '\t'.join(word2)
+            sentence[wi - 1] = ''
+            sentence[wi] = ''
+        sentence = [w for w in sentence if len(w)]
+
+        processed_corpora.append('\n'.join(sentence))
+
+    return '\n\n'.join(processed_corpora)
+
+
 def convert_gicr_format(src_files, dest_file):
     source_content = ''
     for file_name in src_files:
         with open(file_name, 'rb') as sf:
             source_content += 'TEXTID={}'.format(os.path.basename(file_name)) + '\n\n'
             source_content += sf.read().decode('utf-8').strip() + '\n\n'
+
+    source_content = join_gicr_splits(source_content)
 
     target_corpora = []
     document_name = None
@@ -379,7 +455,7 @@ def convert_gicr_format(src_files, dest_file):
                 target_corpora.append('# newdoc id = {}'.format(document_name))
                 document_name = None
 
-            target_corpora.append('# sent_id = {}'.format(sentence_id + 1))
+            # target_corpora.append('# sent_id = {}'.format(sentence_id + 1))
 
         if parsed[1].isdigit():
             assert len(parsed[2]) > 0
@@ -387,8 +463,8 @@ def convert_gicr_format(src_files, dest_file):
 
             word = [
                 '{}'.format(word_id + 1),  # ID
-                parsed[2],  # FORM
-                parsed[3][1:-1],  # LEMMA
+                parsed[2].replace(' ', '_'),  # FORM
+                parsed[3][1:-1].replace(' ', '_'),  # LEMMA
                 udpos_from_multexteastru(parsed[4]),  # UPOSTAG
                 '_',  # XPOSTAG
                 udfeats_from_multexteastru(parsed[4]),  # FEATS
@@ -433,7 +509,10 @@ def convert_gicr_format(src_files, dest_file):
             join_words.append(word)
             continue
 
-        target_corpora.append('\t'.join(word))
+        word = '\t'.join(word)
+        assert ' ' not in word, word
+
+        target_corpora.append(word)
         word_id += 1
 
     target_corpora.extend(['', ''])

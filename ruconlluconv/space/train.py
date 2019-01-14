@@ -26,6 +26,7 @@ def build_estimator(ngram_vocab, model_path):
         rnn_layers=[20],
         rnn_dropout=0.1,
         model_dir=model_path,
+        config=tf.estimator.RunConfig().replace(save_summary_steps=10)  # TODO: check
     )
 
     # Add F1 metrics
@@ -57,13 +58,13 @@ def train_eval(ngram_vocab, model_path, train_data):
     estimator = build_estimator(ngram_vocab, model_path)
 
     metrics = None
-    for _ in range(10):
+    for _ in range(15):
         # Run training
         train_wildcard = os.path.join(train_data, 'train*.txt')
         train_steps = 1 if not os.path.exists(model_path) else None  # Make evaluation after first step
         estimator.train(input_fn=lambda: train_input_fn(
             wild_card=train_wildcard,
-            batch_size=256,
+            batch_size=512,
         ), steps=train_steps)
 
         # Save vocabulary for TensorBoard
@@ -74,7 +75,7 @@ def train_eval(ngram_vocab, model_path, train_data):
         eval_wildcard = os.path.join(train_data, 'test*.txt')
         metrics = estimator.evaluate(input_fn=lambda: train_input_fn(
             wild_card=eval_wildcard,
-            batch_size=256,
+            batch_size=512,
         ))
 
     return metrics

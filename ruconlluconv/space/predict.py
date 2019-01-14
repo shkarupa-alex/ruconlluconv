@@ -70,9 +70,9 @@ def main():
     for sf in src_files:
         with open(os.path.join(argv.src_path, sf), 'rb') as f:
             content = f.read().decode('utf-8').strip()
-            sentences = parse(content)
+            sentences = [s for s in parse(content) if len(s)]
 
-        source_rows = [' '.join([w['form'] for w in s]) for s in sentences]
+        source_rows = [' '.join([w['form'].replace(' ', '_') for w in s]) for s in sentences]
         rows_labels = predict_spaces(
             ngram_vocab=ngram_vocab,
             model_path=argv.model_path,
@@ -82,7 +82,7 @@ def main():
         with open(os.path.join(argv.dest_path, sf), 'wb') as f:
             for sentence, words_labels in zip(sentences, rows_labels):
                 text = []
-                assert len(sentence) == len(words_labels[0]) == len(words_labels[1])
+                assert len(sentence) == len(words_labels[0]) == len(words_labels[1]), (sf, sentence)
                 for i in range(len(sentence)):
                     assert sentence[i]['form'] == words_labels[0][i]
                     text.append(sentence[i]['form'])

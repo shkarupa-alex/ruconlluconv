@@ -23,6 +23,7 @@ setup(
             'ruconlluconv-gicr=ruconlluconv.gicr:main',
             'ruconlluconv-oc=ruconlluconv.oc:main',
             'ruconlluconv-rnc=ruconlluconv.rnc:main',
+            'ruconlluconv-slr=ruconlluconv.slr:main',
             'ruconlluconv-str=ruconlluconv.str:main',
 
             'ruconlluconv-space-dataset=ruconlluconv.space.dataset:main',

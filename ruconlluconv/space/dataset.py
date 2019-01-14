@@ -21,7 +21,7 @@ def create_dataset(src_files, dest_path):
             labels = []
 
             for t in s:
-                tokens.append(t['form'])
+                tokens.append(t['form'].replace(' ', '_'))
                 labels.append('N' if t['misc'] is not None and 'SpaceAfter' in t['misc'] else 'Y')
 
             if not len(tokens):

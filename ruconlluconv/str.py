@@ -34,7 +34,7 @@ def extract_mre_diff(ud_files, mre_file, mre_diff):
     for s in content.split('\n\n'):
         for w in s.split('\n'):
             parts = w.split('\t')
-            assert len(parts) in {0, 1, 5}, parts
+            assert len(parts) in {0, 1, 5}
 
             if len(parts) == 5:
                 parts = parts[:4] + ['_'] + parts[4:] + ['_'] * 5
@@ -49,7 +49,7 @@ def extract_mre_diff(ud_files, mre_file, mre_diff):
         for i, s in enumerate(sentences):
             if not len(s):
                 continue
-            f.write('# sent_id = {}\n'.format(i + 1).encode('utf-8'))
+            # f.write('# sent_id = {}\n'.format(i + 1).encode('utf-8'))
             f.write(s.serialize().encode('utf-8'))
 
 

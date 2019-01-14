@@ -50,7 +50,7 @@ def convert_rnc_format(src_file, dest_file):
                 target_corpora.append('# newpar id = {}'.format(paragraph_name))
                 paragraph_name = None
 
-            target_corpora.append('# sent_id = {}'.format(sentence_id + 1))
+            # target_corpora.append('# sent_id = {}'.format(sentence_id + 1))
 
         parsed = [col.strip() if len(col.strip()) else '_' for col in row.replace('\t', '\t\n').split('\t')]
 
@@ -59,8 +59,8 @@ def convert_rnc_format(src_file, dest_file):
 
         word = [
             '{}'.format(word_id + 1),  # ID
-            parsed[0],  # FORM
-            parsed[1],  # LEMMA
+            parsed[0].replace(' ', '_'),  # FORM
+            parsed[1].replace(' ', '_'),  # LEMMA
             parsed[2],  # UPOSTAG
             '_',  # XPOSTAG
             parsed[3],  # FEATS
@@ -70,7 +70,13 @@ def convert_rnc_format(src_file, dest_file):
             parsed[4],  # MISC
         ]
 
-        target_corpora.append('\t'.join(word))
+        if '_' != word[5]:
+            word[5] = word[5].replace('Variant=Full', '').replace('||', '|').strip('|')
+
+        word = '\t'.join(word)
+        assert ' ' not in word
+
+        target_corpora.append(word)
         word_id += 1
 
     target_corpora.extend(['', ''])

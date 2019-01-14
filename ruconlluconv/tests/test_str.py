@@ -28,7 +28,6 @@ class TestExtractStrMreDiff(unittest.TestCase):
         extract_mre_diff(ud_files, mre_file, act_file)
         with open(act_file, 'rb') as df:
             actual = df.read().decode('utf-8')
-            print(actual)
 
         trg_file = os.path.join(os.path.dirname(__file__), 'data', 'str-diff-trg.conllu')
         with open(trg_file, 'rb') as tf:

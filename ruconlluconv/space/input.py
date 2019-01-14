@@ -64,13 +64,15 @@ def train_input_fn(wild_card, batch_size, threads_count=12, cycle_length=4):
 
     with tf.name_scope('input'):
         files = tf.data.Dataset.list_files(wild_card)
-        dataset = files.apply(tf.contrib.data.parallel_interleave(
-            lambda filename: tf.contrib.data.CsvDataset(filename, record_defaults=[tf.string, tf.string]),
+        dataset = files.apply(tf.data.experimental.parallel_interleave(
+            lambda filename: tf.data.experimental.CsvDataset(filename, record_defaults=[tf.string, tf.string]),
             cycle_length=cycle_length
         ))
 
         dataset = dataset.batch(batch_size)
         dataset = dataset.map(_transform_examples, num_parallel_calls=threads_count)
+        dataset = dataset.repeat(5)
+        dataset = dataset.shuffle(1000)
         dataset = dataset.prefetch(threads_count)
 
         return dataset

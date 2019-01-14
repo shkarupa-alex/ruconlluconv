@@ -90,27 +90,27 @@ def parse_sentence(sentence):
 
     assert sent_text is not None
 
-    # Combine abbreviations
-    right_pos = len(sentence_content) - 1
-    while right_pos > 0:
-        left_token = sentence_content[right_pos - 1].split('\t')
-        right_token = sentence_content[right_pos].split('\t')
-
-        if '.' == right_token[1] and 'Abbr=Yes' in left_token[5] and \
-                (left_token[1].islower() or 1 == len(left_token[1])):
-            sent_text = sent_text.replace('{} .'.format(left_token[1]), '{}.'.format(left_token[1]))
-            left_token[1] += '.'
-            left_token[2] += '.'
-            sentence_content = sentence_content[:right_pos - 1] + \
-                               ['\t'.join(left_token)] + \
-                               sentence_content[right_pos + 1:]
-        right_pos -= 1
-
-    # Reindex after abbreviations joins
-    for i in range(len(sentence_content)):
-        word = sentence_content[i].split('\t')
-        word[0] = '{}'.format(i + 1)
-        sentence_content[i] = '\t'.join(word)
+    # # Combine abbreviations
+    # right_pos = len(sentence_content) - 1
+    # while right_pos > 0:
+    #     left_token = sentence_content[right_pos - 1].split('\t')
+    #     right_token = sentence_content[right_pos].split('\t')
+    #
+    #     if '.' == right_token[1] and 'Abbr=Yes' in left_token[5] and \
+    #             (left_token[1].islower() or 1 == len(left_token[1])):
+    #         sent_text = sent_text.replace('{} .'.format(left_token[1]), '{}.'.format(left_token[1]))
+    #         left_token[1] += '.'
+    #         left_token[2] += '.'
+    #         sentence_content = sentence_content[:right_pos - 1] + \
+    #                            ['\t'.join(left_token)] + \
+    #                            sentence_content[right_pos + 1:]
+    #     right_pos -= 1
+    #
+    # # Reindex after abbreviations joins
+    # for i in range(len(sentence_content)):
+    #     word = sentence_content[i].split('\t')
+    #     word[0] = '{}'.format(i + 1)
+    #     sentence_content[i] = '\t'.join(word)
 
     sent_tokens = [s.split('\t')[1] for s in sentence_content]
     spaces_after = extract_space_after(sent_text, sent_tokens)
@@ -198,7 +198,7 @@ def parse_pos(pos):
         'LATN': ('X', ''),
         'NOUN': ('NOUN', ''),
         'NPRO': ('PRON', ''),
-        'NUMB': ('NUM', 'NumForm=Digit'),
+        'NUMB': ('NUM', ''),  # NumForm=Digit
         'NUMR': ('NUM', ''),
         'PNCT': ('PUNCT', ''),
         'PRCL': ('PART', ''),
@@ -206,7 +206,7 @@ def parse_pos(pos):
         'PREP': ('ADP', ''),
         'PRTF': ('VERB', 'VerbForm=Part'),
         'PRTS': ('VERB', 'Variant=Short|VerbForm=Part'),
-        'ROMN': ('NUM', 'NumForm=Digit'),
+        'ROMN': ('NUM', ''),  # NumForm=Digit
         'SYMB': ('SYM', ''),
         'UNKN': ('X', ''),
         'VERB': ('VERB', 'VerbForm=Fin'),
@@ -220,86 +220,114 @@ def parse_feats(feats):
     feats_values = []
 
     feat_ud = {
+        'ANim': ('', ''),  # no value
+        'anim': ('', 'Animacy=Anim'),
+        'inan': ('', 'Animacy=Inan'),
+
+        'GNdr': ('', ''),  # no value
+        'masc': ('', 'Gender=Masc'),
+        'femn': ('', 'Gender=Fem'),
+        'neut': ('', 'Gender=Neut'),
+        'Ms-f': ('', 'Gender=Com'),
+        'ms-f': ('', 'Gender=Com'),
+
+        'NMbr': ('', ''),  # no value
+        'sing': ('', 'Number=Sing'),
+        'plur': ('', 'Number=Plur'),
+
+        'Sgtm': ('', ''),  # has children
+        'Pltm': ('', ''),  # has children
+        'Fixd': ('', ''),  # no value
+
+        'CAse': ('', ''),  # no value
+        'nomn': ('', 'Case=Nom'),
+        'gent': ('', 'Case=Gen'),
+        'datv': ('', 'Case=Dat'),
+        'accs': ('', 'Case=Acc'),
+        'ablt': ('', 'Case=Ins'),
+        'loct': ('', 'Case=Loc'),
+        'voct': ('', 'Case=Voc'),
+        'gen1': ('', 'Case=Gen'),
+        'gen2': ('', 'Case=Par'),
+        'acc2': ('', 'Case=Acc'),
+        'loc1': ('', 'Case=Loc'),
+        'loc2': ('', 'Case=Loc'),
+
+        'Abbr': ('', 'Abbr=Yes'),
+        'Name': ('PROPN', ''),
+        'Surn': ('PROPN', ''),
+        'Patr': ('PROPN', ''),
+        'Geox': ('PROPN', ''),
+        'Orgn': ('PROPN', ''),
+        # 'Trad': ('PROPN', ''),
+        'Subx': ('', ''),
+        'Supr': ('', 'Degree=Sup'),
+        'Qual': ('', ''),  # TODO: Degree=Pos ?
+        'Apro': ('', ''),
+        'Anum': ('', ''),
+        'Poss': ('', ''),
+        'V-ey': ('', ''),
+        'V-oy': ('', ''),
+        'Cmp2': ('', 'Degree=Cmp'),
+        'V-ej': ('', ''),
+
+        'ASpc': ('', ''),  # no value
+        'perf': ('', 'Aspect=Perf'),
+        'impf': ('', 'Aspect=Imp'),
+
+        'TRns': ('', ''),  # no value
+        'tran': ('', ''),
+        'intr': ('', ''),
+
+        'Impe': ('', ''),  # no value
+        'Impx': ('', ''),  # no value
+        # 'Mult': ('', ''),  # no value
+        # 'Refl': ('', 'Reflex=Yes'),  # no value
+
+        'PErs': ('', ''),  # no value
         '1per': ('', 'Person=1'),
         '2per': ('', 'Person=2'),
         '3per': ('', 'Person=3'),
-        'Abbr': ('', 'Abbr=Yes'),
-        'ablt': ('', 'Case=Ins'),
-        'accs': ('', 'Case=Acc'),
-        'actv': ('', ''),
-        'Adjx': ('', ''),
-        'Af-p': ('', ''),
-        'ANim': ('', ''),
-        'anim': ('', ''),
-        'Anph': ('', ''),
-        'Anum': ('', ''),
-        'Apro': ('', ''),
-        'Arch': ('', ''),
-        'Cmp2': ('', ''),
-        'Coll': ('', ''),
-        'Coun': ('', ''),
-        'datv': ('', 'Case=Dat'),
-        'Dist': ('', ''),
-        'Dmns': ('', ''),
-        'Erro': ('', ''),
-        'excl': ('', ''),
-        'femn': ('', ''),
-        'Fixd': ('', ''),
-        'futr': ('', ''),
-        'gen1': ('', 'Case=Gen'),  # TODO
-        'gen2': ('', 'Case=Gen'),  # TODO Par?
-        'gent': ('', 'Case=Gen'),
-        'Geox': ('PROPN', ''),
-        'GNdr': ('', ''),
-        'Impe': ('', ''),
-        'impf': ('', ''),
-        'impr': ('', ''),
-        'Impx': ('', ''),
-        'inan': ('', ''),
-        'incl': ('', ''),
-        'indc': ('', ''),
+
+        'TEns': ('', ''),  # no value
+        'pres': ('', 'Tense=Pres'),
+        'past': ('', 'Tense=Past'),
+        'futr': ('', 'Tense=Fut'),
+
+        'MOod': ('', ''),  # no value
+        'indc': ('', 'Mood=Ind'),
+        'impr': ('', 'Mood=Imp'),
+
+        'INvl': ('', ''),  # no value
+        'incl': ('', ''),  # TODO Clusivity=In
+        'excl': ('', ''),  # TODO Clusivity=Ex
+
+        'VOic': ('', ''),  # no value
+        'actv': ('', 'Voice=Act'),
+        'pssv': ('', 'Voice=Pass'),
+
         'Infr': ('', ''),
-        'Inmx': ('', ''),
-        'intr': ('', ''),
-        'Litr': ('', ''),
-        'loc1': ('', 'Case=Loc'),  # TODO
-        'loc2': ('', 'Case=Loc'),  # TODO
-        'loct': ('', 'Case=Loc'),
-        'masc': ('', ''),
-        'Ms-f': ('', ''),
-        'ms-f': ('', ''),
-        'Name': ('PROPN', ''),
-        'neut': ('', ''),
-        'nomn': ('', 'Case=Nom'),
-        'Orgn': ('PROPN', ''),
-        'past': ('', ''),
-        'Patr': ('PROPN', ''),
-        'perf': ('', ''),
-        'Pltm': ('', ''),
-        'plur': ('', ''),
-        'Poss': ('', ''),
-        'Prdx': ('', ''),
-        'pres': ('', ''),
-        'Prnt': ('', ''),
-        'pssv': ('', ''),
-        'Qual': ('', ''),
-        'Ques': ('', ''),
-        'Sgtm': ('', ''),
-        'sing': ('', ''),
         'Slng': ('', ''),
-        'Subx': ('', ''),
-        'Supr': ('', ''),
-        'Surn': ('PROPN', ''),
-        'tran': ('', ''),
+        'Arch': ('', ''),
+        'Litr': ('', ''),
+        'Erro': ('', ''),
+        'Dist': ('', ''),
+        'Ques': ('', ''),
+        'Dmns': ('', ''),
+        'Prnt': ('', ''),  # H?
         'V-be': ('', ''),
-        'V-ej': ('', ''),
         'V-en': ('', ''),
-        'V-ey': ('', ''),
         'V-ie': ('', ''),
-        'V-oy': ('', ''),
+        'Prdx': ('', ''),
+        'Coun': ('', ''),
+        'Coll': ('', ''),
         'V-sh': ('', ''),
-        'voct': ('', 'Case=Voc'),
+        'Af-p': ('', ''),
+        'Inmx': ('', ''),
         'Vpre': ('', ''),
+        'Anph': ('', ''),
+        'Adjx': ('', ''),
+
     }
 
     for feat in feats:
