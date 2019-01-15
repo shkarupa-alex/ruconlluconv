@@ -5,6 +5,7 @@
 - Глубоко аннотированный синтаксический корпус (ГАК, SynTagRus) [www.ruscorpora.ru](http://www.ruscorpora.ru/corpora-structure.html)
 - Генеральный интернет-корпус (ГИКРЯ, GICR) [www.webcorpora.ru](http://www.webcorpora.ru/)
 - Открытый корпус (OpenCorpora) [opencorpora.org](http://opencorpora.org/)
+- Тестовая часть (MorphoRuEval2017) [https://github.com/dialogue-evaluation/morphoRuEval-2017/blob/master/test_set.rar]
 - Корпус из (Solarix) [https://kelijah.livejournal.com/202487.html]
 
 Проект [UniversalDependencies](http://universaldependencies.org/) предоставляет корпуса:
@@ -60,6 +61,10 @@ ruconlluconv-oc data/manual/annot.opcorpora.no_ambig.xml data/processed/ru_oc-or
 HowTo:
 - сконвертировать официальную версию в CoNNL-U
 
+## MRE17 test
+```bash
+ruconlluconv-mrg data/mre17/MRE_Gold/ data/processed/notext/ru_mre17-orig-test.conllu
+```
 
 ## Solarix
 ```bash

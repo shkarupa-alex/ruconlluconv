@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'ruconlluconv-gicr=ruconlluconv.gicr:main',
+            'ruconlluconv-mrg=ruconlluconv.mrg:main',
             'ruconlluconv-oc=ruconlluconv.oc:main',
             'ruconlluconv-rnc=ruconlluconv.rnc:main',
             'ruconlluconv-slr=ruconlluconv.slr:main',
