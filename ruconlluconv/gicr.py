@@ -437,11 +437,10 @@ def convert_gicr_format(src_files, dest_file):
 
         if row.startswith('TEXTID='):  # new document
             document_name = row.replace('TEXTID=', '').strip()
-            sentence_id = 0
             word_id = 0
             continue
 
-        if len(row) == 0:  # new sentence
+        if len(row.strip()) == 0:  # new sentence
             if word_id > 0:
                 sentence_id += 1
             word_id = 0
@@ -449,13 +448,13 @@ def convert_gicr_format(src_files, dest_file):
 
         parsed = [col.strip() if len(col.strip()) else '_' for col in row.replace('\t', '\t\n').split('\t')] + ['_'] * 3
         if 0 == word_id:
-            target_corpora.extend(['', ''])
+            target_corpora.append('')
 
             if document_name is not None:
                 target_corpora.append('# newdoc id = {}'.format(document_name))
                 document_name = None
 
-            # target_corpora.append('# sent_id = {}'.format(sentence_id + 1))
+            target_corpora.append('# sent_id = gicr_gold_1.2_{}'.format(sentence_id + 1))
 
         if parsed[1].isdigit():
             assert len(parsed[2]) > 0
@@ -515,9 +514,9 @@ def convert_gicr_format(src_files, dest_file):
         target_corpora.append(word)
         word_id += 1
 
-    target_corpora.extend(['', ''])
+    target_corpora.append('')
     with open(dest_file, 'wb') as df:
-        df.write('\n'.join(target_corpora[2:]).encode('utf-8'))
+        df.write('\n'.join(target_corpora[1:]).encode('utf-8'))
 
 
 def main():

@@ -24,7 +24,7 @@ class TestConvertOcFormat(unittest.TestCase):
         convert_oc_format(src_file, dest_file)
         with open(dest_file, 'rb') as df:
             actual = df.read().decode('utf-8')
-            print(actual)
+            # print(actual)
 
         trg_file = os.path.join(os.path.dirname(__file__), 'data', 'oc-man-trg.conllu')
         with open(trg_file, 'rb') as tf:
@@ -39,6 +39,7 @@ class TestConvertOcFormat(unittest.TestCase):
         convert_oc_format(src_file, dest_file)
         with open(dest_file, 'rb') as df:
             actual = df.read().decode('utf-8')
+            # print(actual)
 
         trg_file = os.path.join(os.path.dirname(__file__), 'data', 'oc-gold-trg.conllu')
         with open(trg_file, 'rb') as tf:

@@ -24,6 +24,7 @@ class TestConvertMreRnc(unittest.TestCase):
         convert_rnc_format(src_file, dest_file)
         with open(dest_file, 'rb') as df:
             actual = df.read().decode('utf-8')
+            # print(actual)
 
         trg_file = os.path.join(os.path.dirname(__file__), 'data', 'rnc-cnv-trg.conllu')
         with open(trg_file, 'rb') as tf:

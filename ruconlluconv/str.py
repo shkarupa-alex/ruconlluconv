@@ -37,6 +37,7 @@ def extract_mre_diff(ud_files, mre_file, mre_diff):
             assert len(parts) in {0, 1, 5}
 
             if len(parts) == 5:
+                parts[4] = parts[4].replace('NumForm=Digit', '').replace('||', '|').strip('|')
                 parts = parts[:4] + ['_'] + parts[4:] + ['_'] * 5
             prepared.append('\t'.join(parts))
         prepared.append('\n')
@@ -49,7 +50,7 @@ def extract_mre_diff(ud_files, mre_file, mre_diff):
         for i, s in enumerate(sentences):
             if not len(s):
                 continue
-            # f.write('# sent_id = {}\n'.format(i + 1).encode('utf-8'))
+            f.write('# sent_id = syntagrus_add_mre17_{}\n'.format(i + 1).encode('utf-8'))
             f.write(s.serialize().encode('utf-8'))
 
 

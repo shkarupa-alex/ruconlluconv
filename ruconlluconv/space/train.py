@@ -58,7 +58,7 @@ def train_eval(ngram_vocab, model_path, train_data):
     estimator = build_estimator(ngram_vocab, model_path)
 
     metrics = None
-    for _ in range(15):
+    for _ in range(10):
         # Run training
         train_wildcard = os.path.join(train_data, 'train*.txt')
         train_steps = 1 if not os.path.exists(model_path) else None  # Make evaluation after first step

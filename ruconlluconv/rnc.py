@@ -11,25 +11,21 @@ def convert_rnc_format(src_file, dest_file):
 
     target_corpora = []
     document_name = None
-    paragraph_name = None
     paragraph_id = 0
+    paragraph_name = None
     sentence_id = 0
     word_id = 0
-    for xxx, row in enumerate(source_content.split('\n')):
+    for row in source_content.split('\n'):
         row = row.strip()
 
         if row.startswith('==>'):  # new document
             document_name = row.replace('==>', '').replace('<==', '').strip()
-            paragraph_id = 0
-            sentence_id = 0
             word_id = 0
             continue
 
         if '==newfile==' == row:  # new paragraph
             paragraph_name = '{}'.format(paragraph_id + 1)
-            if sentence_id > 0:
-                paragraph_id += 1
-            sentence_id = 0
+            paragraph_id += 1
             word_id = 0
             continue
 
@@ -40,17 +36,17 @@ def convert_rnc_format(src_file, dest_file):
             continue
 
         if 0 == word_id:
-            target_corpora.extend(['', ''])
+            target_corpora.append('')
 
             if document_name is not None:
                 target_corpora.append('# newdoc id = {}'.format(document_name))
                 document_name = None
 
             if paragraph_name is not None:
-                target_corpora.append('# newpar id = {}'.format(paragraph_name))
+                target_corpora.append('# newpar id = rnc_{}'.format(paragraph_name))
                 paragraph_name = None
 
-            # target_corpora.append('# sent_id = {}'.format(sentence_id + 1))
+            target_corpora.append('# sent_id = rnc_{}'.format(sentence_id + 1))
 
         parsed = [col.strip() if len(col.strip()) else '_' for col in row.replace('\t', '\t\n').split('\t')]
 
@@ -79,9 +75,9 @@ def convert_rnc_format(src_file, dest_file):
         target_corpora.append(word)
         word_id += 1
 
-    target_corpora.extend(['', ''])
+    target_corpora.append('')
     with open(dest_file, 'wb') as df:
-        df.write('\n'.join(target_corpora[2:]).encode('utf-8'))
+        df.write('\n'.join(target_corpora[1:]).encode('utf-8'))
 
 
 def main():

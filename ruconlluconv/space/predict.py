@@ -84,7 +84,7 @@ def main():
                 text = []
                 assert len(sentence) == len(words_labels[0]) == len(words_labels[1]), (sf, sentence)
                 for i in range(len(sentence)):
-                    assert sentence[i]['form'] == words_labels[0][i]
+                    assert sentence[i]['form'].replace(' ', '_') == words_labels[0][i]
                     text.append(sentence[i]['form'])
                     if words_labels[1][i] == 'N':
                         if sentence[i]['misc'] is None:

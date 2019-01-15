@@ -23,6 +23,7 @@ def convert_slr_format(src_file, dest_file):
 
                 feats = parts[4]
                 if '_' != feats:
+                    feats = feats.replace('Variant=Brev', 'Variant=Short')
                     feats = feats.split('|')
                     feats = sorted(feats)
                     feats = '|'.join(feats)
@@ -39,6 +40,7 @@ def convert_slr_format(src_file, dest_file):
         for i, s in enumerate(sentences):
             if not len(s):
                 continue
+            f.write('# sent_id = solarix_{}\n'.format(i + 1).encode('utf-8'))
             f.write(s.serialize().encode('utf-8'))
 
 

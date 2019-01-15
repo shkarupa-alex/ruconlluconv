@@ -10,7 +10,7 @@ def convert_oc_format(src_file, dest_file):
     source_annotation = ElementTree.parse(src_file)
     target_corpora = parse_annotation(source_annotation.getroot())
 
-    target_corpora.extend(['', ''])
+    target_corpora.append('')
     with open(dest_file, 'wb') as df:
         df.write('\n'.join(target_corpora).encode('utf-8'))
 
@@ -40,7 +40,7 @@ def parse_text(text):
         assert 'paragraphs' == child.tag
         for paragraph in child:
             if len(text_content):
-                text_content.extend(['', ''])
+                text_content.append('')
 
             par_id = paragraph.attrib['id']
             assert par_id is not None and len(par_id)
@@ -65,7 +65,7 @@ def parse_paragraph(paragraph):
     assert 'paragraph' == paragraph.tag
     for sentence in paragraph:
         if len(paragraph_content):
-            paragraph_content.extend(['', ''])
+            paragraph_content.append('')
 
         sentence_content = parse_sentence(sentence)
         paragraph_content.extend(sentence_content)
@@ -75,12 +75,16 @@ def parse_paragraph(paragraph):
 
 def parse_sentence(sentence):
     sentence_content = []
+    sent_id = None
     sent_text = None
 
     assert 'sentence' == sentence.tag
+    if 'id' in sentence.attrib:
+        sent_id = sentence.attrib['id'].strip()
+
     for child in sentence:
         if 'source' == child.tag:
-            sent_text = child.text.replace('\n', ' ')
+            sent_text = child.text.replace('\n', ' ').strip()
             continue
 
         assert 'tokens' == child.tag
@@ -124,7 +128,11 @@ def parse_sentence(sentence):
         sentence_content[i] = '\t'.join(word)
 
     if len(sentence_content):
+        assert sent_text is not None
         sentence_content.insert(0, '# text = {}'.format(sent_text))
+
+        assert sent_id is not None
+        sentence_content.insert(0, '# sent_id = opcorpora_{}'.format(sent_id))
 
     return sentence_content
 
