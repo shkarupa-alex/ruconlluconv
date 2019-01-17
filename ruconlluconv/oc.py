@@ -198,7 +198,7 @@ def parse_pos(pos):
         'ADJF': ('ADJ', ''),
         'ADJS': ('ADJ', 'Variant=Short'),
         'ADVB': ('ADV', ''),
-        'COMP': ('COMP', ''),  # Adj or Adv
+        'COMP': ('COMP', 'Degree=Cmp'),  # Adj or Adv or Pred
         'CONJ': ('CONJ', ''),  # CCONJ or SCONJ
         'GRND': ('VERB', 'VerbForm=Ger'),
         'INFN': ('VERB', 'VerbForm=Inf'),
@@ -211,7 +211,7 @@ def parse_pos(pos):
         'PNCT': ('PUNCT', ''),
         'PRCL': ('PART', ''),
         'PRED': ('PRED', ''),  # Verb or Adj or Adv (same as W in GICR)
-        'PREP': ('ADP', ''),
+        'PREP': ('ADP', ''), # ADJ or Adv or other (Noun, Verb, Pron)
         'PRTF': ('VERB', 'VerbForm=Part'),
         'PRTS': ('VERB', 'Variant=Short|VerbForm=Part'),
         'ROMN': ('NUM', ''),  # NumForm=Digit

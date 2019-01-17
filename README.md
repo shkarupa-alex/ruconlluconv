@@ -93,8 +93,14 @@ ruconlluconv-space-predict data/space/vocab.pkl space_model/ data/processed/note
 ```
 
 TODO
+- CONJ
+- _
+- abbr
+
+_ в POS обычно сопровождается ложными вершинами синт. дерева и при этом id содержит точку
+
 _ в слове
-_ в POS
+
 сокращения т. \n д \n.
 &#39; and ``
 http://www.dialog-21.ru/media/3951/sorokinaetal.pdf

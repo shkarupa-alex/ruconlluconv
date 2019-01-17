@@ -12,7 +12,7 @@ def udpos_from_multexteastru(features):
     pos = {
         'A': 'ADJ',
         'C': 'CONJ',  # CCONJ or SCONJ
-        'H': 'H', # TODO
+        'H': 'H',  # TODO
         'I': 'INTJ',
         'M': 'NUM',
         'N': 'NOUN',
@@ -21,7 +21,7 @@ def udpos_from_multexteastru(features):
         'R': 'ADV',
         'S': 'ADP',
         'V': 'VERB',
-        'W': 'W',  # Verb or Adj or Adv
+        'W': 'PRED',  # Verb or Adj or Adv
         'X': 'X',
         '_': 'X',
         '?': 'X',
@@ -364,14 +364,29 @@ def udfeats_from_multexteastru(f):
     return fv_map if len(fv_map) else '_'
 
 
-def join_gicr_composite(parts):
-    result = parts[-1][:1] + ['', ''] + parts[-1][3:]
+def break_combined_paragraphs(source_content):
+    target_content = []
 
-    for w in parts:
-        result[1] += w[1]
-        result[2] += w[2]
+    last_id = 0
+    for row in source_content.split('\n'):
+        cols = row.split('\t')
+        if not len(row.strip()) or len(cols) < 2:
+            last_id = 0
+            target_content.append(row)
+            continue
 
-    return result
+        if 'P' == cols[1].strip():
+            target_content.append(row)
+            continue
+
+        id = int(cols[1].strip())
+        if id < last_id:
+            target_content.extend(['', ''])
+
+        last_id = id
+        target_content.append(row)
+
+    return '\n'.join(target_content)
 
 
 def join_gicr_splits(source_corpora):
@@ -418,14 +433,103 @@ def join_gicr_splits(source_corpora):
     return '\n\n'.join(processed_corpora)
 
 
+def repair_broken_composites(source_content):
+    target_content = []
+
+    composite_start = []
+    composite_end = []
+    sentence_end = []
+    for row in source_content.split('\n'):
+        cols = row.split('\t')
+        if not len(row.strip()) or len(cols) < 2:
+            composite_start.append(False)
+            composite_end.append(False)
+            sentence_end.append(True)
+            target_content.append(row)
+            continue
+        sentence_end.append(False)
+
+        if len(cols) == 6:
+            cols[5] = cols[5].replace('c-c+', '')
+            composite_start.append('c-' in cols[5])
+            composite_end.append('c+' in cols[5])
+        else:
+            composite_start.append(False)
+            composite_end.append(False)
+        row = '\t'.join(cols)
+
+        target_content.append(row)
+
+    assert len(composite_start) == len(composite_end) == len(sentence_end)
+
+    composite_started = -1
+    composite_errors = []
+    for i, cs, ce, se in zip(range(len(composite_start)), composite_start, composite_end, sentence_end):
+        assert not cs or not ce
+        if cs:
+            if composite_started >= 0:
+                composite_errors.append(composite_started)
+            composite_started = i
+        if ce:
+            composite_started = -1
+
+        if se and composite_started >= 0:
+            composite_errors.append(composite_started)
+            composite_started = -1
+
+    for idx, i in enumerate(composite_errors):
+        cols = target_content[i].split('\t')
+        assert len(cols) == 6, cols
+
+        cols1 = target_content[i + 1].split('\t')
+        if 5 == len(cols1):
+            cols1.append('')
+        assert len(cols1) == 6 or len(cols1) == 3 or len(cols1) == 1 and sentence_end[i + 1]
+
+        if sentence_end[i + 1] or sentence_end[i + 2]:
+            cols[5] = cols[5].replace('c-', '')
+            composite_errors[idx] = 0
+        elif len(cols1) == 6:
+            cols[5] = cols[5].replace('c-', '')
+            composite_errors[idx] = 0
+        elif len(cols1) == 3 and cols1[2].strip()[0] not in {'.', '-'}:
+            cols[5] = cols[5].replace('c-', '')
+            composite_errors[idx] = 0
+        elif len(cols1) == 3 and cols1[2].strip()[0] in {'.', '-'}:
+            cols1 += ['', '', 'c+']
+            composite_errors[idx] = 0
+
+        target_content[i] = '\t'.join(cols)
+        target_content[i + 1] = '\t'.join(cols1)
+
+    assert 0 == sum(composite_errors)
+
+    return '\n'.join(target_content)
+
+
+def join_gicr_composite(parts):
+    result = parts[-1][:1] + ['', ''] + parts[-1][3:]
+    if 'PUNCT' == parts[-1][3]:
+        result = parts[-2][:1] + ['', ''] + parts[-2][3:]
+
+    for w in parts:
+        result[1] += w[1]
+        result[2] += w[2]
+
+    return result
+
+
 def convert_gicr_format(src_files, dest_file):
     source_content = ''
     for file_name in src_files:
         with open(file_name, 'rb') as sf:
-            source_content += 'TEXTID={}'.format(os.path.basename(file_name)) + '\n\n'
+            source_content += '\n\nTEXTID={}\n\n'.format(os.path.basename(file_name))
             source_content += sf.read().decode('utf-8').strip() + '\n\n'
+            source_content = source_content.replace('\r', '')
 
+    source_content = break_combined_paragraphs(source_content)
     source_content = join_gicr_splits(source_content)
+    source_content = repair_broken_composites(source_content)
 
     target_corpora = []
     document_name = None
@@ -478,7 +582,7 @@ def convert_gicr_format(src_files, dest_file):
         else:
             assert 'P' == parsed[1]
             assert len(parsed[2]) > 0
-            assert set(parsed[3:]) == {'_'}
+            assert len(set(parsed[3:]) - {'_', 'c+'}) == 0
 
             word = [
                 '{}'.format(word_id + 1),  # ID
